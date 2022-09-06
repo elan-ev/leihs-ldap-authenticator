@@ -1,0 +1,6 @@
+cryptography
+pyjwt
+pyyaml
+requests
+Flask
+ldap3

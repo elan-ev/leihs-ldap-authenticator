@@ -1,0 +1,35 @@
+# LDAP based authentication handler for Leihs
+
+token:
+  public_key: |
+    -----BEGIN PUBLIC KEY-----
+    ...
+    -----END PUBLIC KEY-----
+
+  private_key: |
+    -----BEGIN PRIVATE KEY-----
+    ...
+    -----END PRIVATE KEY-----
+
+  # How long should the issued success token be valid.
+  # Shorter means more secure but also more likely to cause errors in case of slow networks.
+  # Value in seconds.
+  validity: 100
+
+  # Do not fail if the token received from Leihs has expired.
+  # Acepting expired Token is insecure!
+  allow_expired: False
+
+system:
+  url: https://leihs.example.com
+  admin:
+    user: admin@example.com
+    password: SECURE_PASSWORD
+  auth_id: jwt
+
+ldap:
+   server: ldap.example.com
+   port: 636
+   user_dn: 'uid={username},ou=people,dc=example,dc=com'
+   base_dn: 'ou=people,dc=example,dc=com'
+   search_filter: '(uid={username})'
