@@ -49,13 +49,20 @@ def verify_password(username, password):
     return conn.entries[0]
 
 
+def login_data(token_data):
+    email = data.get('email')
+    login = data.get('login')
+    if login:
+        return email, login, True
+    login = email.split('@', 1)[0]
+    return email, login, False
+
+
 @app.route('/', methods=['GET'])
 def login_page():
     token = request.args.get('token')
-    #token = config('token', 'demo')
     data = token_data(token)
-    email = data.get('email')
-    user = email.split('@', 1)[0]
+    email, user, _ = login_data(data)
     return render_template_string(TPL, token=token, user=user)
 
 
@@ -65,8 +72,7 @@ def login():
     password = request.form.get('password')
 
     data, return_url = authenticate(token)
-    email = data.get('email')
-    user = email.split('@', 1)[0]
+    email, user, registered = login_data(data)
 
     user_data = verify_password(user, password)
     register_user(
