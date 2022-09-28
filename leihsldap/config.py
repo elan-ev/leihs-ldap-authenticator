@@ -31,12 +31,13 @@ def configuration_file():
         return '/etc/leihs-ldap.yml'
 
 
-def update_configuration():
+def update_configuration(filename=None):
     '''Update configuration.
     '''
-    cfgfile = configuration_file()
+    cfgfile = filename or configuration_file()
     if not cfgfile:
         return {}
+    print(f'Loading configuration from {cfgfile}')
     with open(cfgfile, 'r') as f:
         cfg = yaml.safe_load(f)
     globals()['__config'] = cfg
