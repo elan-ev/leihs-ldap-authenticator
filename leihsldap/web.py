@@ -49,7 +49,7 @@ def verify_password(username, password):
     return conn.entries[0]
 
 
-def login_data(token_data):
+def login_data(data):
     email = data.get('email')
     login = data.get('login')
     if login:
