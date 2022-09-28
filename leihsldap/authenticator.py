@@ -12,6 +12,12 @@ def response_url(sign_in_token_data, success_token):
 
 def token_data(token):
     options = {}
+
+    # Fall back to demo token for development if one is provided
+    if not token:
+        print('Warning: Using demo token')
+        token = config('token', 'demo')
+
     if config('token', 'allow_expired'):
         options = {'verify_exp': False}
     private_key = config('token', 'private_key')
