@@ -19,9 +19,7 @@ def check(response, error_message):
         raise RuntimeError(message)
 
 
-def register_user(email, firstname=None, lastname=None, login=None):
-    session = requests.Session()
-
+def login(session):
     # get csrf_token
     response = session.get(url())
     check(response, 'Could not get landing page')
@@ -36,6 +34,19 @@ def register_user(email, firstname=None, lastname=None, login=None):
     response = session.post(url('/sign-in'), data=login_data)
     check(response, 'Could not sign in')
 
+    return csrf_token
+
+
+def logout(session, csrf_token):
+    logout_data = {'csrf-token': csrf_token}
+    session.post(url('/sign-out'), data=logout_data)
+
+
+def register_user(email, firstname=None, lastname=None, login=None):
+    session = requests.Session()
+
+    csrf_token = login(session)
+
     # check if user is already registered
     # stop if user exists
     headers = {
@@ -45,8 +56,6 @@ def register_user(email, firstname=None, lastname=None, login=None):
     response = session.get(url(f'/admin/users/?term={email}'),
                            headers=headers)
     check(response, 'Could not request users')
-    print(response.json())
-    print(response.json().get('users', []))
     for user in response.json().get('users', []):
         if user.get('email') == email:
             return
@@ -66,11 +75,44 @@ def register_user(email, firstname=None, lastname=None, login=None):
     check(response, 'Could not create user')
     user_id = response.json().get('id')
 
-    auth = config('system', 'auth_id')
+    auth = config('system', 'auth', 'id')
     path = f'/admin/system/authentication-systems/{auth}/users/{user_id}'
     response = session.put(url(path), headers=headers)
     check(response, 'Could not add user to authentication system')
 
-    # log out again
-    logout_data = {'csrf-token': csrf_token}
-    session.post(url('/sign-out'), data=logout_data)
+    logout(session, csrf_token)
+
+
+def register_auth_system():
+    session = requests.Session()
+
+    csrf_token = login(session)
+
+    headers = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-Csrf-Token': csrf_token}
+
+    system_data = json.dumps({
+        'description': config('system', 'auth', 'description'),
+        'enabled': True,
+        'external_public_key': config('token', 'public_key'),
+        'external_sign_in_url': config('system', 'auth', 'url'),
+        'id': config('system', 'auth', 'id', allow_empty=False),
+        'internal_private_key': config('token', 'private_key'),
+        'internal_public_key': config('token', 'public_key'),
+        'name': config('system', 'auth', 'name'),
+        'priority': config('system', 'auth', 'priority') or 3,
+        'send_email': True,
+        'send_login': True,
+        'type': 'external',
+        'sign_up_email_match': config('system', 'auth', 'email_match')
+        })
+    response = session.post(url('/admin/system/authentication-systems/'),
+                            data=system_data,
+                            headers=headers)
+    check(response, 'Could not register authenticatioon system')
+
+    logout(session, csrf_token)
+
+    return response.json()

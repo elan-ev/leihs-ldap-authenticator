@@ -25,7 +25,13 @@ system:
   admin:
     user: admin@example.com
     password: SECURE_PASSWORD
-  auth_id: jwt
+  auth:
+    id: jwt
+    name: LDAP Authentication
+    description: null
+    url: http://127.0.0.1:5000
+    priority: 3
+    email_match: .*
 
 ldap:
    server: ldap.example.com

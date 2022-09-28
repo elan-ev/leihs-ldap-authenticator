@@ -2,7 +2,7 @@ from ldap3 import Server, Connection, ALL
 from flask import Flask, request, redirect, render_template
 
 from leihsldap.authenticator import authenticate, token_data
-from leihsldap.register_user import register_user
+from leihsldap.register_user import register_user, register_auth_system
 from leihsldap.config import config
 
 flask_config = {}
@@ -45,6 +45,15 @@ def login_data(data):
         return email, login, True
     login = email.split('@', 1)[0]
     return email, login, False
+
+
+@app.before_first_request
+def before_first_request():
+    try:
+        register_auth_system()
+    except RuntimeError:
+        print('Could not register authentication system. System is likely '
+              'already registered')
 
 
 @app.route('/', methods=['GET'])
