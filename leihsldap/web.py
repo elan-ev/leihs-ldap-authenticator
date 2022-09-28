@@ -1,27 +1,18 @@
 from ldap3 import Server, Connection, ALL
 from ldap3.core.exceptions import LDAPBindError
-from flask import Flask, request, redirect, render_template_string
+from flask import Flask, request, redirect, render_template
 
 from leihsldap.authenticator import authenticate, token_data
 from leihsldap.register_user import register_user
 from leihsldap.config import config
 
+flask_config = {}
+if config('ui', 'directories', 'template'):
+    flask_config['template_folder'] = config('ui', 'directories', 'template')
+if config('ui', 'directories', 'static'):
+    flask_config['static_folder'] = config('ui', 'directories', 'static')
+app = Flask(__name__, **flask_config)
 
-app = Flask(__name__)
-
-TPL = '''<!doctype html>
-<html>
-<title>Login</title>
-<body style="width: 100px; margin: 100px auto;">
-<form action="/" method="POST">
-    <input type="hidden" name="token" value="{{ token }}"/>
-    <input type="text" name="user" value="{{ user }}" readonly />
-    <input type="password" name="password" placeholder="password" autofocus />
-    <button type="submit">Login</button>
-</form>
-</body>
-</html>
-'''
 
 def ensure_list(var):
     if type(var) is list:
@@ -32,7 +23,6 @@ def ensure_list(var):
 def verify_password(username, password):
     user_dn = config('ldap', 'user_dn').format(username=username)
 
-    #server = Server('ldap.uni-osnabrueck.de', use_ssl=True, get_info=ALL)
     server = Server(
             config('ldap', 'server'),
             port=config('ldap', 'port'),
@@ -63,7 +53,7 @@ def login_page():
     token = request.args.get('token')
     data = token_data(token)
     email, user, _ = login_data(data)
-    return render_template_string(TPL, token=token, user=user)
+    return render_template('login.html', token=token, user=user)
 
 
 @app.route('/', methods=['POST'])
