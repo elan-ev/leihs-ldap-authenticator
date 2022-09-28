@@ -50,7 +50,7 @@ def update_configuration(filename=None):
     return cfg
 
 
-def config(*args):
+def config(*args, allow_empty=True):
     '''Get a specific configuration value or the whole configuration, loading
     the configuration file if it was not before.
 
@@ -61,6 +61,8 @@ def config(*args):
     cfg = __config or update_configuration()
     for key in args:
         if cfg is None:
-            return
+            if allow_empty:
+                return
+            raise KeyError(f'Missing configuration key {args}')
         cfg = cfg.get(key)
     return cfg
