@@ -1,5 +1,4 @@
 from ldap3 import Server, Connection, ALL
-from ldap3.core.exceptions import LDAPBindError
 from flask import Flask, request, redirect, render_template
 
 from leihsldap.authenticator import authenticate, token_data
@@ -35,7 +34,7 @@ def verify_password(username, password):
             config('ldap', 'search_filter').format(username=username),
             attributes=['sn', 'givenName', 'mail'])
     if len(conn.entries) != 1:
-        raise ValueError('Search must return exactly one result:', conn.entries)
+        raise ValueError('Search must return exactly one result', conn.entries)
     return conn.entries[0]
 
 
