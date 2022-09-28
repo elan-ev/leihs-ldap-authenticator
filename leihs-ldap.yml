@@ -33,3 +33,14 @@ ldap:
    user_dn: 'uid={username},ou=people,dc=example,dc=com'
    base_dn: 'ou=people,dc=example,dc=com'
    search_filter: '(uid={username})'
+
+ui:
+  directories:
+    # Path to a folder containing user interface templates if the built-in templates should not be used.
+    # If you use this, make sure to provide all necessary templates.
+    # Missing templates can cause unrecoverable errors during the login process.
+    #template: /path/to/template/dir
+
+    # Path to a folder containing static files used in the user interface.
+    # This overwrites all built-in files.
+    #static: /path/to/static/dir
