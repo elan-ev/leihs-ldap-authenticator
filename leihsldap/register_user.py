@@ -42,7 +42,7 @@ def logout(session, csrf_token):
     session.post(url('/sign-out'), data=logout_data)
 
 
-def register_user(email, firstname=None, lastname=None, login=None):
+def register_user(email, firstname=None, lastname=None, username=None):
     session = requests.Session()
 
     csrf_token = login(session)
@@ -66,7 +66,7 @@ def register_user(email, firstname=None, lastname=None, login=None):
             'lastname': lastname,
             'account_enabled': True,
             'password_sign_in_enabled': False,
-            'login': login,
+            'login': username,
             'extended_info': None
             })
     response = session.post(url('/admin/users/'),

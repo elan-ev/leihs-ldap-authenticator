@@ -1,0 +1,28 @@
+---
+invalid_token:
+  title: Invalid Token
+  message: |
+    Invalid token provided.
+    If you have been redirected from Leihs,
+    please report this to your administrator.
+no_token:
+  title: Missing Token
+  message: |
+    No token has been provided to identify the user.
+    Return to Leihs and try logging in again.
+expired_token:
+  title: Expired Token
+  message: |
+    You log-in attempt took too long and the token provided by Leihs has expired.
+    Please return to Leihs and try again.
+invalid_credentials:
+  title: Invalid Credentials
+  message: |
+    Your username or password seems to be incorrect.
+    Please go back and try again.
+internal:
+  title: Error
+  message: |
+    An internal server error occurred.
+    This should not have happened.
+    Please report this to your administrator and try again later.
