@@ -7,7 +7,7 @@ from flask import Flask, request, redirect, render_template
 from functools import wraps
 from jwt.exceptions import DecodeError, ExpiredSignatureError
 
-from leihsldap.authenticator import authenticate, token_data
+from leihsldap.authenticator import response_url, token_data
 from leihsldap.register_user import register_user, register_auth_system
 from leihsldap.config import config
 
@@ -37,10 +37,15 @@ def verify_password(username, password):
             get_info=ALL)
     conn = Connection(server, user_dn, password, auto_bind=True)
 
+    attributes = list(filter(bool, [
+        config('ldap', 'userdata', 'email', 'field'),
+        config('ldap', 'userdata', 'name', 'family'),
+        config('ldap', 'userdata', 'name', 'given')]))
+
     conn.search(
             config('ldap', 'base_dn'),
             config('ldap', 'search_filter').format(username=username),
-            attributes=['sn', 'givenName', 'mail'])
+            attributes=attributes)
     if len(conn.entries) != 1:
         raise ValueError('Search must return exactly one result', conn.entries)
     return conn.entries[0]
@@ -106,16 +111,38 @@ def login_page():
 @app.route('/', methods=['POST'])
 @handle_errors
 def login():
+    '''Handle login POST requests.
+    The POST request form data must contain the fields:
+
+    - token: JWT token received from and signed by Leihs
+    - password: The password the user tries to sign in with
+    '''
+    # get form data
     token = request.form.get('token')
     password = request.form.get('password')
 
-    data, return_url = authenticate(token)
+    # verify token and get login data
+    data = token_data(token)
     email, user, registered = login_data(data)
 
+    # Login to and get user data from LDAP
     user_data = verify_password(user, password)
+
+    # Check if to fall back to the LDAP email address
+    email_overwrite = config('ldap', 'userdata', 'email', 'overwrite')
+    email_fallback = config('ldap', 'userdata', 'email', 'fallback')
+    email_invalid = not email or '@' not in email
+    if email_overwrite or email_fallback and email_invalid:
+        email_field = config('ldap', 'userdata', 'email', 'field')
+        email = str(user_data[email_field])
+        data['email'] = email
+
+    # Make sure user is registered with Leihs
     register_user(
             email,
             firstname=str(user_data['givenName']),
             lastname=str(user_data['sn']),
             username=user)
-    return redirect(return_url, code=302)
+
+    # Redirect back to Leihs with success token
+    return redirect(response_url(token, data), code=302)

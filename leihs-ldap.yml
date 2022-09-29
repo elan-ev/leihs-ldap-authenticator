@@ -14,7 +14,7 @@ token:
   # How long should the issued success token be valid.
   # Shorter means more secure but also more likely to cause errors in case of slow networks.
   # Value in seconds.
-  validity: 100
+  validity: 120
 
   # Do not fail if the token received from Leihs has expired.
   # Acepting expired Token is insecure!
@@ -39,6 +39,24 @@ ldap:
    user_dn: 'uid={username},ou=people,dc=example,dc=com'
    base_dn: 'ou=people,dc=example,dc=com'
    search_filter: '(uid={username})'
+   userdata:
+     email:
+       # Use LDAP email data to overwrite the email field provided by Leihs.
+       # This can be useful, for example, if you have several domains.
+       overwrite: True
+
+       # Falls back to LDAP email if no valid email is provided from Leihs.
+       fallback: True
+
+       # LDAP attribute to use as email address.
+       field: mail
+
+     name:
+       # LDAP field specifying the user's family name
+       family: sn
+
+       # LDAP field specifying the user's given name
+       given: givenName
 
 ui:
   directories:
