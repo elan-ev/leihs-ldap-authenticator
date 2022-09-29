@@ -2,7 +2,7 @@ import os
 import yaml
 
 from ldap3 import Server, Connection, ALL
-from ldap3.core.exceptions import LDAPBindError
+from ldap3.core.exceptions import LDAPBindError, LDAPPasswordIsMandatoryError
 from flask import Flask, request, redirect, render_template
 from functools import wraps
 from jwt.exceptions import DecodeError, ExpiredSignatureError
@@ -73,7 +73,7 @@ def handle_errors(function):
             return error('invalid_token', 400)
         except ExpiredSignatureError:
             return error('expired_token', 400)
-        except LDAPBindError:
+        except (LDAPBindError, LDAPPasswordIsMandatoryError):
             return error('invalid_credentials', 403)
     return wrapper
 
