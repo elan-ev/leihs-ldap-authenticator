@@ -4,21 +4,13 @@ import time
 from leihsldap.config import config
 
 
-def response_url(sign_in_token_data, success_token):
-    base_url = sign_in_token_data['server_base_url']
-    path = sign_in_token_data['path']
-    return f'{base_url}{path}?token={success_token}'
-
-
 def token_data(token):
     options = {'verify_exp': not config('token', 'allow_expired')}
     private_key = config('token', 'private_key')
     return jwt.decode(token, private_key, ['ES256'], options)
 
 
-def authenticate(token):
-    data = token_data(token)
-
+def response_url(token, data):
     # generate success token
     iat = int(time.time())
     exp = iat + config('token', 'validity')
@@ -31,4 +23,6 @@ def authenticate(token):
             'success': True
             }, private_key, 'ES256')
 
-    return data, response_url(data, success_token)
+    base_url = data['server_base_url']
+    path = data['path']
+    return f'{base_url}{path}?token={success_token}'
