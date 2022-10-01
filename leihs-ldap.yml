@@ -22,9 +22,15 @@ token:
 
 system:
   url: https://leihs.example.com
-  admin:
-    user: admin@example.com
-    password: SECURE_PASSWORD
+
+  # To generate an API token:
+  # - In Leihs admin, go to “Users”
+  # - Select a user
+  # - Click on “User-Home in leihs/my”
+  # - Click on “API-Tokens”
+  # - Clixk “Add API-Token”
+  api_token: 00000000-1111-2222-3333-444444444444
+
   auth:
     id: jwt
     name: LDAP Authentication
