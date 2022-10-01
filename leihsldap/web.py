@@ -8,7 +8,7 @@ from functools import wraps
 from jwt.exceptions import DecodeError, ExpiredSignatureError
 
 from leihsldap.authenticator import response_url, token_data
-from leihsldap.register_user import register_user, register_auth_system
+from leihsldap.leihs_api import register_user, register_auth_system
 from leihsldap.config import config
 
 flask_config = {}
