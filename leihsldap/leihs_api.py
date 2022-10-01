@@ -1,28 +1,22 @@
 import requests
-import json
 
 from leihsldap.config import config
 
 
-def url(path: str = '/') -> str:
-    '''Turn a relative path into a URL for the targeted Leihs system.
+def api(method: str, path: str, **kwargs) -> requests.models.Response:
+    '''Execute an HTTP request against the Leihs API.
+    This uses the API token from the configuration file.
 
-    :param path: Path of the URL
-    :returns: URL to Leihs
+    :param method: HTTP method to use
+    :param path: Path of the request URL
+    :returns: HTTP response
     '''
     base_url = config('system', 'url')
-    return f'{base_url}{path}'
-
-
-def headers(csrf_token: str) -> dict:
-    '''Return default set of HTTP headers for Leihs API.
-
-    :param csrf_token: CSRF token for Leihs
-    :returns: Dictionary of HTTP headers
-    '''
-    return {'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-Csrf-Token': csrf_token}
+    url = f'{base_url}{path}'
+    headers = {'Accept': 'application/json',
+               'Content-Type': 'application/json',
+               'Authorization': 'Token ' + config('system', 'api_token')}
+    return requests.request(method, url, headers=headers, **kwargs)
 
 
 def check(response, error_message: str) -> None:
@@ -43,39 +37,6 @@ def check(response, error_message: str) -> None:
         raise RuntimeError(message)
 
 
-def login(session) -> str:
-    '''Start an authenticated syssion by logging in to Leihs.
-
-    :param session: Session created by requests library
-    :returns: CSRF token for Leihs
-    '''
-    # get csrf_token
-    response = session.get(url())
-    check(response, 'Could not get landing page')
-    csrf_token = response.cookies.get('leihs-anti-csrf-token')
-
-    # log in as admin
-    login_data = {
-            'csrf-token': csrf_token,
-            'user': config('system', 'admin', 'user'),
-            'password': config('system', 'admin', 'password')
-            }
-    response = session.post(url('/sign-in'), data=login_data)
-    check(response, 'Could not sign in')
-
-    return csrf_token
-
-
-def logout(session, csrf_token) -> None:
-    '''Log out from Leihs, ending the authenticated session.
-
-    :param session: Session created by requests library
-    :param csrf_token: CSRF token for Leihs
-    '''
-    logout_data = {'csrf-token': csrf_token}
-    session.post(url('/sign-out'), data=logout_data)
-
-
 def register_user(email: str,
                   firstname: str = None,
                   lastname: str = None,
@@ -88,37 +49,29 @@ def register_user(email: str,
     :param lastname: The user's family name
     :param username: The user's login
     '''
-    session = requests.Session()
-
-    csrf_token = login(session)
-
     # register new user
-    user_data = json.dumps({
-            'email': email,
-            'firstname': firstname,
-            'lastname': lastname,
-            'account_enabled': True,
-            'password_sign_in_enabled': False,
-            'login': username,
-            'extended_info': None
-            })
-    response = session.post(url('/admin/users/'),
-                            data=user_data,
-                            headers=headers(csrf_token))
+    user_data = {
+        'email': email,
+        'firstname': firstname,
+        'lastname': lastname,
+        'account_enabled': True,
+        'password_sign_in_enabled': False,
+        'login': username,
+        'extended_info': None
+        }
+    response = api('post', '/admin/users/', json=user_data)
 
     # It's fine if we get a conflict.
     # That just means, the user is already registered
     if response.status_code != 409:
         check(response, 'Could not create user')
-        user_id = response.json().get('id')
 
         # add the newly created user to the authentication system
         auth = config('system', 'auth', 'id')
+        user_id = response.json().get('id')
         path = f'/admin/system/authentication-systems/{auth}/users/{user_id}'
-        response = session.put(url(path), headers=headers(csrf_token))
+        response = api('put', path)
         check(response, 'Could not add user to authentication system')
-
-    logout(session, csrf_token)
 
 
 def register_auth_system() -> dict:
@@ -127,11 +80,8 @@ def register_auth_system() -> dict:
 
     :returns: Dictionary with authentication system data
     '''
-    session = requests.Session()
-    csrf_token = login(session)
-
     # register system
-    system_data = json.dumps({
+    system_data = {
         'description': config('system', 'auth', 'description'),
         'enabled': True,
         'external_public_key': config('token', 'public_key'),
@@ -145,12 +95,9 @@ def register_auth_system() -> dict:
         'send_login': True,
         'type': 'external',
         'sign_up_email_match': config('system', 'auth', 'email_match')
-        })
-    response = session.post(url('/admin/system/authentication-systems/'),
-                            data=system_data,
-                            headers=headers(csrf_token))
+        }
+    response = api('post',
+                   '/admin/system/authentication-systems/',
+                   json=system_data)
     check(response, 'Could not register authentication system')
-
-    logout(session, csrf_token)
-
     return response.json()
