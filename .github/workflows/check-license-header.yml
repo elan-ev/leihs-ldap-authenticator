@@ -1,0 +1,20 @@
+name: check-license-header
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  check-license-header:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: check for files without license header
+      run: >
+        grep -rL 'under the terms of the GNU General Public License' leihsldap/
+        | tee files-without-license-headers
+
+    - name: fail if we found any files without header
+      run: |
+        ! grep -q leihsldap files-without-license-headers
