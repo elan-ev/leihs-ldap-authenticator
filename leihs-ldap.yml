@@ -40,29 +40,35 @@ system:
     email_match: .*
 
 ldap:
-   server: ldap.example.com
-   port: 636
-   user_dn: 'uid={username},ou=people,dc=example,dc=com'
-   base_dn: 'ou=people,dc=example,dc=com'
-   search_filter: '(uid={username})'
-   userdata:
-     email:
-       # Use LDAP email data to overwrite the email field provided by Leihs.
-       # This can be useful, for example, if you have several domains.
-       overwrite: True
+  server: ldap.example.com
+  port: 636
+  user_dn: 'uid={username},ou=people,dc=example,dc=com'
+  base_dn: 'ou=people,dc=example,dc=com'
+  search_filter: '(uid={username})'
+  userdata:
+    email:
+      # Use LDAP email data to overwrite the email field provided by Leihs.
+      # This can be useful, for example, if you have several domains.
+      overwrite: True
 
-       # Falls back to LDAP email if no valid email is provided from Leihs.
-       fallback: True
+      # Falls back to LDAP email if no valid email is provided from Leihs.
+      fallback: True
 
-       # LDAP attribute to use as email address.
-       field: mail
+      # LDAP attribute to use as email address.
+      field: mail
 
-     name:
+    name:
        # LDAP field specifying the user's family name
        family: sn
 
        # LDAP field specifying the user's given name
        given: givenName
+
+    groups:
+      # LDAP fields specifying groups to which new users will be assigned.
+      # Group assignments will not be updated on subsequent requests.
+      fields:
+        - ou
 
 ui:
   directories:

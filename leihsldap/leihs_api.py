@@ -56,7 +56,8 @@ def check(response, error_message: str) -> None:
 def register_user(email: str,
                   firstname: str = None,
                   lastname: str = None,
-                  username: str = None):
+                  username: str = None,
+                  groups: list[str] = []):
     '''Register a new user with Leihs.
     Skip registration if the user already exists.
 
@@ -64,6 +65,7 @@ def register_user(email: str,
     :param firstname: The user's given name
     :param lastname: The user's family name
     :param username: The user's login
+    :param groups: List of groups to add user to when initially created
     '''
     # register new user
     user_data = {
@@ -83,11 +85,25 @@ def register_user(email: str,
         check(response, 'Could not create user')
 
         # add the newly created user to the authentication system
-        auth = config('system', 'auth', 'id')
-        user_id = response.json().get('id')
-        path = f'/admin/system/authentication-systems/{auth}/users/{user_id}'
-        response = api('put', path)
-        check(response, 'Could not add user to authentication system')
+        user_data = response.json()
+        add_user_to_auth(user_data['id'])
+
+        # add user to groups
+        for group in groups:
+            group_data = create_group(group)
+            print(group_data)
+            add_user_to_group(user_data['id'], group_data['id'])
+
+
+def add_user_to_auth(user_id: str) -> None:
+    '''Add user to the authentication system.
+
+    :param user_id: Identifier of the user to add.
+    '''
+    auth_id = config('system', 'auth', 'id')
+    path = f'/admin/system/authentication-systems/{auth_id}/users/{user_id}'
+    response = api('put', path)
+    check(response, 'Could not add user to authentication system')
 
 
 def register_auth_system() -> dict:
@@ -117,3 +133,42 @@ def register_auth_system() -> dict:
                    json=system_data)
     check(response, 'Could not register authentication system')
     return response.json()
+
+
+def create_group(name: str) -> dict:
+    '''Create group if it does not yet exists.
+
+    :param name: Name of the group to create. Also used as org_id.
+    :returns: Dictionary of user data
+    '''
+    group_data = {
+        'name': name,
+        'org_id': name,
+        'organization': 'leihs-local'
+        }
+    response = api('post', '/admin/groups/', json=group_data)
+
+    # If we just created the group, we have all data we need
+    if response.status_code != 409:
+        check(response, 'Could not create group')
+        return response.json()
+
+    # if the group already existed, get the existing group's data
+    del group_data['name']
+    response = api('get', '/admin/groups/', params=group_data)
+    check(response, 'Could not get group data')
+    groups_found = response.json().get('groups', [])
+    if len(groups_found) != 1:
+        raise RuntimeError(f'Got invalid group data: {groups_found}')
+    return groups_found[0]
+
+
+def add_user_to_group(user_id: str, group_id: str):
+    '''Add a user to a group in Leihs.
+
+    :param user_id: Identifier of the user to add
+    :param group_id: Identifier of the Group to add the user to
+    '''
+    response = api('put', f'/admin/groups/{group_id}/users/{user_id}')
+    check(response, 'Could not add user to group')
+    return response
