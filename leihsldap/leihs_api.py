@@ -91,7 +91,6 @@ def register_user(email: str,
         # add user to groups
         for group in groups:
             group_data = create_group(group)
-            print(group_data)
             add_user_to_group(user_data['id'], group_data['id'])
 
 
@@ -106,7 +105,7 @@ def add_user_to_auth(user_id: str) -> None:
     check(response, 'Could not add user to authentication system')
 
 
-def register_auth_system() -> dict:
+def register_auth_system() -> None:
     '''Register the authentication system with Leihs.
     Registration data are taken from the configuration.
 
@@ -131,8 +130,13 @@ def register_auth_system() -> dict:
     response = api('post',
                    '/admin/system/authentication-systems/',
                    json=system_data)
+
+    # If we got a 409, the system is already registered and everything is good
+    if response.status_code == 409:
+        return
+
+    # If we got anything else, check for errors
     check(response, 'Could not register authentication system')
-    return response.json()
 
 
 def create_group(name: str) -> dict:
