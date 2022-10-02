@@ -57,6 +57,7 @@ def verify_password(username: str, password: str) -> dict:
         config('ldap', 'userdata', 'email', 'field'),
         config('ldap', 'userdata', 'name', 'family'),
         config('ldap', 'userdata', 'name', 'given')]))
+    attributes += config('ldap', 'userdata', 'groups', 'fields') or []
 
     conn.search(
             config('ldap', 'base_dn'),
@@ -144,6 +145,10 @@ def login():
     # Login to and get user data from LDAP
     user_data = verify_password(user, password)
 
+    # Get list of groups the user should be in
+    group_fields = config('ldap', 'userdata', 'groups', 'fields') or []
+    groups = [group for field in group_fields for group in user_data[field]]
+
     # Check if to fall back to the LDAP email address
     email_overwrite = config('ldap', 'userdata', 'email', 'overwrite')
     email_fallback = config('ldap', 'userdata', 'email', 'fallback')
@@ -158,7 +163,8 @@ def login():
             email,
             firstname=user_data['givenName'][0],
             lastname=user_data['sn'][0],
-            username=user)
+            username=user,
+            groups=groups)
 
     # Redirect back to Leihs with success token
     return redirect(response_url(token, data), code=302)
