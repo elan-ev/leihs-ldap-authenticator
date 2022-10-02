@@ -102,11 +102,9 @@ def handle_errors(function):
 
 @app.before_first_request
 def before_first_request():
-    try:
-        register_auth_system()
-    except RuntimeError:
-        print('Could not register authentication system. System is likely '
-              'already registered')
+    '''Try registering the authentication system.
+    '''
+    register_auth_system()
 
 
 @app.errorhandler(500)
