@@ -43,7 +43,7 @@ def ensure_list(var):
     return [var]
 
 
-def verify_password(username, password):
+def verify_password(username: str, password: str) -> dict:
     user_dn = config('ldap', 'user_dn').format(username=username)
 
     server = Server(
@@ -64,7 +64,7 @@ def verify_password(username, password):
             attributes=attributes)
     if len(conn.entries) != 1:
         raise ValueError('Search must return exactly one result', conn.entries)
-    return conn.entries[0]
+    return conn.entries[0].entry_attributes_as_dict
 
 
 def login_data(data):
@@ -150,14 +150,14 @@ def login():
     email_invalid = not email or '@' not in email
     if email_overwrite or email_fallback and email_invalid:
         email_field = config('ldap', 'userdata', 'email', 'field')
-        email = str(user_data[email_field])
+        email = user_data[email_field][0]
         data['email'] = email
 
     # Make sure user is registered with Leihs
     register_user(
             email,
-            firstname=str(user_data['givenName']),
-            lastname=str(user_data['sn']),
+            firstname=user_data['givenName'][0],
+            lastname=user_data['sn'][0],
             username=user)
 
     # Redirect back to Leihs with success token
