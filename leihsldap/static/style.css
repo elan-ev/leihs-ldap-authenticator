@@ -1,4 +1,4 @@
-<!--
+/*
 LDAP based authentication handler for Leihs 
 Copyright 2022 ELAN e.V.
 
@@ -14,17 +14,29 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
--->
-<!doctype html>
-<html>
-	<head>
-		<title>{{ title }}</title>
-		<meta name=viewport content="width=device-width, initial-scale=1">
-		<link type=text/css rel=stylesheet href={{ url_for('static', filename='style.css') }} />
-	</head>
-	<body>
-		<h1>{{ title }}</h1>
-		<p>{{ message }}</p>
-		<p><a href="{{ leihs_url }}">Return to Leihs →</a></p>
-	</body>
-</html>
+*/
+
+body {
+	color: #000;
+	background-color: #fff;
+	font-size: 16px;
+	font-family: sans-serif;
+	max-width: 400px;
+	margin: 250px auto;
+	padding: 25px;
+}
+
+@media only screen and (max-height: 500px) {
+	body {
+		margin: 50px auto;
+	}
+}
+
+input {
+	display: block;
+	margin: 15px 0;
+}
+
+input[name] {
+	width: 100%;
+}

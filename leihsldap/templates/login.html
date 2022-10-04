@@ -17,13 +17,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 -->
 <!doctype html>
 <html>
-<title>Login</title>
-<body style="width: 100px; margin: 100px auto;">
-<form action="/" method="POST">
-    <input type="hidden" name="token" value="{{ token }}"/>
-    <input type="text" name="user" value="{{ user }}" readonly />
-    <input type="password" name="password" placeholder="password" autofocus />
-    <button type="submit">Login</button>
-</form>
-</body>
+	<head>
+		<title>Login</title>
+		<meta name=viewport content="width=device-width, initial-scale=1">
+		<link type=text/css rel=stylesheet href={{ url_for('static', filename='style.css') }} />
+	</head>
+	<body>
+		<h1>Login</h1>
+		<form action="/" method="POST">
+			 <input type="hidden" name="token" value="{{ token }}"/>
+			 <input type="text" name="user" value="{{ user }}" readonly disabled />
+			 <input type="password" name="password" placeholder="password" autofocus />
+			 <input type="submit" value="Login" />
+		</form>
+	</body>
 </html>
