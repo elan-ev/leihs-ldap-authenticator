@@ -1,26 +1,9 @@
 # LDAP based authentication handler for Leihs
 
-token:
-  public_key: |
-    -----BEGIN PUBLIC KEY-----
-    ...
-    -----END PUBLIC KEY-----
-
-  private_key: |
-    -----BEGIN PRIVATE KEY-----
-    ...
-    -----END PRIVATE KEY-----
-
-  # How long should the issued success token be valid.
-  # Shorter means more secure but also more likely to cause errors in case of slow networks.
-  # Value in seconds.
-  validity: 120
-
-  # Do not fail if the token received from Leihs has expired.
-  # Acepting expired Token is insecure!
-  allow_expired: False
-
-system:
+# Configuration related to your Leihs installation.
+leihs:
+  # Public URL of your Leihs server.
+  # This will be used for API access.
   url: https://leihs.example.com
 
   # To generate an API token:
@@ -31,20 +14,94 @@ system:
   # - Clixk “Add API-Token”
   api_token: 00000000-1111-2222-3333-444444444444
 
-  auth:
-    id: jwt
-    name: LDAP Authentication
-    description: null
-    url: http://127.0.0.1:5000
-    priority: 3
-    email_match: .*
 
+# Configuration related to JWT tokend received by and sent to Leihs.
+token:
+  # Private key for JWT token.
+  # To generate a new key, run:
+  # ❯ openssl ecparam -name prime256v1 -genkey -noout -out private-key.pem
+  private_key: |
+    -----BEGIN PRIVATE KEY-----
+    ...
+    -----END PRIVATE KEY-----
+
+  # Public key for JWT token.
+  # To generate this key, run:
+  # ❯ openssl ec -in private-key.pem -pubout -out public-key.pem
+  public_key: |
+    -----BEGIN PUBLIC KEY-----
+    ...
+    -----END PUBLIC KEY-----
+
+  # How long should the issued success token be valid.
+  # Shorter means more secure but also more likely to cause errors in case of slow networks.
+  # Value in seconds.
+  validity: 120
+
+  # Do not fail if the token received from Leihs has expired.
+  # Accepting expired token is insecure!
+  allow_expired: False
+
+
+# Configuration related to the authentication system registration in Leihs.
+# This service will automatically register itself on Leihs using this data.
+# Once set, the authenticator will never update the data.
+auth-system:
+  # Unique identifier for this authentication system.
+  # This will later bind users to this authentication method.
+  id: ldap-auth
+
+  # Name of the authenticator.
+  # This will be shown on the authentication button in Leihs.
+  name: LDAP Authentication
+
+  # Description for this authentication system.
+  description: null
+
+  # Public URL to the deployed Leihs LDAP authenticator.
+  # Users will be redirected here when trying to log in.
+  url: http://127.0.0.1:5000
+
+  # Priority of this authentication method.
+  priority: 3
+
+  # Regular expression matching users when they try to log in.
+  # If a user logs in, but has no Leihs user yet,
+  # LDAP authentication is offered to the user if this regular expression matches.
+  # It often makes sense to either set this to matching email addresses
+  # from specific domain names like .*@example.com
+  # or to set this to .* to match all inputs.
+  email_match: .*
+
+
+# Configuration related to the LDAP server.
+# - Note that only secure connections via TLS are allowed.
+# - The authenticator will try logging in with a users provided username and password
+#   and then sor for his/her own data.
+# - You can use ldapsearch to check what data is available:
+#   ❯ ldapsearch -v -H ldaps://ldap.example.com:636 \
+#       -b ou=people,dc=example,dc=com \
+#       -D uid=testuser,ou=people,dc=example,dc=com \
+#       -W '(uid=testuser)'
 ldap:
+  # Rhe LDAP server address.
   server: ldap.example.com
+
+  # TCP port the LDAP server is listening on.
   port: 636
+
+  # Distinguished Name to bind to the LDAP directory.
+  # Use {username} as placeholder for the user's username.
   user_dn: 'uid={username},ou=people,dc=example,dc=com'
+
+  # Use base_dn as the starting point for the search.
   base_dn: 'ou=people,dc=example,dc=com'
+
+  # Filter for user search.
+  # Use {username} as placeholder for the user's username.
   search_filter: '(uid={username})'
+
+  # Specification of user data transferred to Leihs
   userdata:
     email:
       # Use LDAP email data to overwrite the email field provided by Leihs.
@@ -70,6 +127,8 @@ ldap:
       fields:
         - ou
 
+
+# User interface configuration.
 ui:
   directories:
     # Path to a folder containing user interface templates if the built-in templates should not be used.
