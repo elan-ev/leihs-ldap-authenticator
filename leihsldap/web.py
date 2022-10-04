@@ -82,7 +82,7 @@ def error(id, code):
         with open(os.path.dirname(__file__) + '/error.yml', 'r') as f:
             globals()['__error'] = yaml.safe_load(f)
     error_data = __error.get(id).copy()
-    error_data['leihs_url'] = config('system', 'url')
+    error_data['leihs_url'] = config('leihs', 'url')
     return render_template('error.html', **error_data), code
 
 

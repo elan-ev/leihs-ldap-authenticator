@@ -27,11 +27,11 @@ def api(method: str, path: str, **kwargs) -> requests.models.Response:
     :param path: Path of the request URL
     :returns: HTTP response
     '''
-    base_url = config('system', 'url')
+    base_url = config('leihs', 'url', allow_empty=False)
     url = f'{base_url}{path}'
     headers = {'Accept': 'application/json',
                'Content-Type': 'application/json',
-               'Authorization': 'Token ' + config('system', 'api_token')}
+               'Authorization': 'Token ' + config('leihs', 'api_token')}
     return requests.request(method, url, headers=headers, **kwargs)
 
 
@@ -99,7 +99,7 @@ def add_user_to_auth(user_id: str) -> None:
 
     :param user_id: Identifier of the user to add.
     '''
-    auth_id = config('system', 'auth', 'id')
+    auth_id = config('auth-system', 'id')
     path = f'/admin/system/authentication-systems/{auth_id}/users/{user_id}'
     response = api('put', path)
     check(response, 'Could not add user to authentication system')
@@ -113,19 +113,19 @@ def register_auth_system() -> None:
     '''
     # register system
     system_data = {
-        'description': config('system', 'auth', 'description'),
+        'description': config('auth-system', 'description'),
         'enabled': True,
         'external_public_key': config('token', 'public_key'),
-        'external_sign_in_url': config('system', 'auth', 'url'),
-        'id': config('system', 'auth', 'id', allow_empty=False),
+        'external_sign_in_url': config('auth-system', 'url'),
+        'id': config('auth-system', 'id', allow_empty=False),
         'internal_private_key': config('token', 'private_key'),
         'internal_public_key': config('token', 'public_key'),
-        'name': config('system', 'auth', 'name'),
-        'priority': config('system', 'auth', 'priority') or 3,
+        'name': config('auth-system', 'name'),
+        'priority': config('auth-system', 'priority') or 3,
         'send_email': True,
         'send_login': True,
         'type': 'external',
-        'sign_up_email_match': config('system', 'auth', 'email_match')
+        'sign_up_email_match': config('auth-system', 'email_match')
         }
     response = api('post',
                    '/admin/system/authentication-systems/',
