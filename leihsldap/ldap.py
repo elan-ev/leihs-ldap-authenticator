@@ -14,9 +14,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import logging
+
 from ldap3 import Server, Connection, ALL, AUTO_BIND_NO_TLS
 
 from leihsldap.config import config
+
+# Logger
+logger = logging.getLogger(__name__)
 
 
 def ldap_login(username: str, password: str) -> dict[str, list]:
@@ -32,6 +37,7 @@ def ldap_login(username: str, password: str) -> dict[str, list]:
     '''
     user_dn = config('ldap', 'user_dn').format(username=username)
 
+    logger.debug('Trying to log into LDAP with user_dn `%s`', user_dn)
     server = Server(config('ldap', 'server'),
                     port=config('ldap', 'port'),
                     use_ssl=True,
@@ -39,6 +45,7 @@ def ldap_login(username: str, password: str) -> dict[str, list]:
     # Note: AUTO_BIND_NO_TLS means no Start TLS
     # See: https://github.com/cannatag/ldap3/issues/1061
     conn = Connection(server, user_dn, password, auto_bind=AUTO_BIND_NO_TLS)
+    logger.debug('Login successful with user_dn `%s`', user_dn)
 
     attributes = list(filter(bool, [
         config('ldap', 'userdata', 'email', 'field'),
@@ -46,10 +53,12 @@ def ldap_login(username: str, password: str) -> dict[str, list]:
         config('ldap', 'userdata', 'name', 'given')]))
     attributes += config('ldap', 'userdata', 'groups', 'fields') or []
 
+    logger.debug('Searching for user data')
     conn.search(
             config('ldap', 'base_dn'),
             config('ldap', 'search_filter').format(username=username),
             attributes=attributes)
     if len(conn.entries) != 1:
         raise ValueError('Search must return exactly one result', conn.entries)
+    logger.debug('Found user data')
     return conn.entries[0].entry_attributes_as_dict
