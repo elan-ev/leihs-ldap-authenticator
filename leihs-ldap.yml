@@ -139,3 +139,13 @@ ui:
     # Path to a folder containing static files used in the user interface.
     # This overwrites all built-in files.
     #static: /path/to/static/dir
+
+# Level of details used for logging
+# Valid options are:
+#  - TRACE
+#  - DEBUG
+#  - INFO
+#  - WARNING
+#  - ERROR
+# Default: INFO
+loglevel: INFO

@@ -15,9 +15,13 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import jwt
+import logging
 import time
 
 from leihsldap.config import config
+
+# Logger
+logger = logging.getLogger(__name__)
 
 
 def token_data(token: str) -> tuple[dict[str, list], str, str, bool]:
@@ -39,8 +43,12 @@ def token_data(token: str) -> tuple[dict[str, list], str, str, bool]:
     # If the value identifies a user, Leihs will supply the login it knows.
     # We always set login, so we can use this to check if a user is registered.
     if type(login) is str:
+        logger.debug('Login attempt from already registered user `%s` (`%s`)',
+                     login, email)
         return data, email, login, True
     login = email.split('@', 1)[0]
+    logger.debug('Login attempt from unregistered user `%s` (`%s`)',
+                 login, email)
     return data, email, login, False
 
 
@@ -64,6 +72,7 @@ def response_url(token: str, data: dict[str, str]) -> str:
             'success': True
             }, private_key, 'ES256')
 
+    logger.debug('returning success token: %s', success_token)
     base_url = data['server_base_url']
     path = data['path']
     return f'{base_url}{path}?token={success_token}'

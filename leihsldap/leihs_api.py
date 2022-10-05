@@ -14,11 +14,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import logging
 import requests
 
 from typing import Optional
 
 from leihsldap.config import config
+
+# Logger
+logger = logging.getLogger(__name__)
 
 
 def api(method: str, path: str, **kwargs) -> requests.models.Response:
@@ -34,17 +38,18 @@ def api(method: str, path: str, **kwargs) -> requests.models.Response:
     headers = {'Accept': 'application/json',
                'Content-Type': 'application/json',
                'Authorization': 'Token ' + config('leihs', 'api_token')}
+    logger.debug('Sending request to %s', url)
     return requests.request(method, url, headers=headers, **kwargs)
 
 
-def check(response, error_message: str) -> None:
+def check(response: requests.models.Response, error_message: str) -> None:
     '''Check if the response contains an HTTP error code and raise an exception
     if it does. The exception message will contain additional information
     returned by the request.
 
     :param response: HTTP response return by requests library
     :param error_message: Error message to include if an exception is raised
-    :raises: RuntimeError
+    :raises RuntimeError: HTTP error response detected
     '''
     if response.status_code >= 300:
         message = '\n'.join([
@@ -79,11 +84,13 @@ def register_user(email: str,
         'login': username,
         'extended_info': None
         }
+    logger.debug('Trying to register user: %s', user_data)
     response = api('post', '/admin/users/', json=user_data)
 
     # It's fine if we get a conflict.
     # That just means, the user is already registered
     if response.status_code != 409:
+        logger.debug('New user created. Adding authentication and groups.')
         check(response, 'Could not create user')
 
         # add the newly created user to the authentication system
@@ -103,6 +110,8 @@ def add_user_to_auth(user_id: str) -> None:
     '''
     auth_id = config('auth-system', 'id')
     path = f'/admin/system/authentication-systems/{auth_id}/users/{user_id}'
+    logger.debug('Adding user `%s` to authentication system `%s`',
+                 user_id, auth_id)
     response = api('put', path)
     check(response, 'Could not add user to authentication system')
 
@@ -129,12 +138,15 @@ def register_auth_system() -> None:
         'type': 'external',
         'sign_up_email_match': config('auth-system', 'email_match')
         }
+    logger.debug('Trying to register authentication system `%s´',
+                 system_data['id'])
     response = api('post',
                    '/admin/system/authentication-systems/',
                    json=system_data)
 
     # If we got a 409, the system is already registered and everything is good
     if response.status_code == 409:
+        logger.debug('Authentication system was already registered.')
         return
 
     # If we got anything else, check for errors
@@ -152,6 +164,7 @@ def create_group(name: str) -> dict:
         'org_id': name,
         'organization': 'leihs-local'
         }
+    logger.debug('Trying to create group %s', name)
     response = api('post', '/admin/groups/', json=group_data)
 
     # If we just created the group, we have all data we need
@@ -160,6 +173,7 @@ def create_group(name: str) -> dict:
         return response.json()
 
     # if the group already existed, get the existing group's data
+    logger.debug('Group already existed. Getting info from existing group')
     del group_data['name']
     response = api('get', '/admin/groups/', params=group_data)
     check(response, 'Could not get group data')
@@ -175,6 +189,7 @@ def add_user_to_group(user_id: str, group_id: str):
     :param user_id: Identifier of the user to add
     :param group_id: Identifier of the Group to add the user to
     '''
+    logger.debug('Trying to add user `%s` to group `%s`.', user_id, group_id)
     response = api('put', f'/admin/groups/{group_id}/users/{user_id}')
     check(response, 'Could not add user to group')
     return response

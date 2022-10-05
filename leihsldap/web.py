@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import logging
 import os
 import yaml
 
@@ -26,6 +27,9 @@ from leihsldap.authenticator import response_url, token_data
 from leihsldap.config import config
 from leihsldap.ldap import ldap_login
 from leihsldap.leihs_api import register_user, register_auth_system
+
+# Logger
+logger = logging.getLogger(__name__)
 
 flask_config = {}
 if config('ui', 'directories', 'template'):
@@ -63,11 +67,14 @@ def handle_errors(function):
     def wrapper(*args, **kwargs):
         try:
             return function(*args, **kwargs)
-        except DecodeError:
+        except DecodeError as e:
+            logger.info('Error decoding token: %s', e)
             return error('invalid_token', 400)
-        except ExpiredSignatureError:
+        except ExpiredSignatureError as e:
+            logger.info('Token expired: %s', e)
             return error('expired_token', 400)
-        except (LDAPBindError, LDAPPasswordIsMandatoryError):
+        except (LDAPBindError, LDAPPasswordIsMandatoryError) as e:
+            logger.info('LDAP login failed: %s', e)
             return error('invalid_credentials', 403)
     return wrapper
 
@@ -76,6 +83,7 @@ def handle_errors(function):
 def before_first_request():
     '''Try registering the authentication system.
     '''
+    logger.info('Trying to register authentication system')
     register_auth_system()
 
 
@@ -96,8 +104,9 @@ def login_page():
     '''
     token = request.args.get('token')
     if not token:
+        logger.debug('No token provided')
         return error('no_token', 400)
-    data, email, user, _ = token_data(token)
+    _, email, user, _ = token_data(token)
     return render_template('login.html', token=token, user=user)
 
 
