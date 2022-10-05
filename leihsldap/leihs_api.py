@@ -16,6 +16,8 @@
 
 import requests
 
+from typing import Optional
+
 from leihsldap.config import config
 
 
@@ -54,9 +56,9 @@ def check(response, error_message: str) -> None:
 
 
 def register_user(email: str,
-                  firstname: str = None,
-                  lastname: str = None,
-                  username: str = None,
+                  firstname: Optional[str] = None,
+                  lastname: Optional[str] = None,
+                  username: Optional[str] = None,
                   groups: list[str] = []):
     '''Register a new user with Leihs.
     Skip registration if the user already exists.

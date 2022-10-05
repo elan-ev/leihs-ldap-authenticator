@@ -20,13 +20,38 @@ import time
 from leihsldap.config import config
 
 
-def token_data(token):
+def token_data(token: str) -> tuple[dict[str, list], str, str, bool]:
+    '''Verify JWT token and extract data contained within token.
+
+    :param token: The JWT token.
+    :returns: Tuple of original data, email, login and if the user is already
+        registered
+    '''
     options = {'verify_exp': not config('token', 'allow_expired')}
     private_key = config('token', 'private_key')
-    return jwt.decode(token, private_key, ['ES256'], options)
+    data = jwt.decode(token, private_key, ['ES256'], options)
+
+    email = data.get('email')
+    login = data.get('login')
+    if type(email) is not str:
+        raise RuntimeError('Field email must be set.')
+    # If a user does not exist, Leihs will treat the entered value as an email.
+    # If the value identifies a user, Leihs will supply the login it knows.
+    # We always set login, so we can use this to check if a user is registered.
+    if type(login) is str:
+        return data, email, login, True
+    login = email.split('@', 1)[0]
+    return data, email, login, False
 
 
-def response_url(token, data):
+def response_url(token: str, data: dict[str, str]) -> str:
+    '''Generate response URL to redirect to after authentication.
+    The URL should point to Leihs and will contain a success token with user
+    information to identify the user in Leihs.
+
+    :param token: Original request token from Leihs.
+    :param data: User data to pass on to Leihs.
+    '''
     # generate success token
     iat = int(time.time())
     exp = iat + config('token', 'validity')
