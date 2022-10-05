@@ -17,15 +17,15 @@
 import os
 import yaml
 
-from ldap3 import Server, Connection, ALL
-from ldap3.core.exceptions import LDAPBindError, LDAPPasswordIsMandatoryError
 from flask import Flask, request, redirect, render_template
 from functools import wraps
 from jwt.exceptions import DecodeError, ExpiredSignatureError
+from ldap3.core.exceptions import LDAPBindError, LDAPPasswordIsMandatoryError
 
 from leihsldap.authenticator import response_url, token_data
-from leihsldap.leihs_api import register_user, register_auth_system
 from leihsldap.config import config
+from leihsldap.ldap import ldap_login
+from leihsldap.leihs_api import register_user, register_auth_system
 
 flask_config = {}
 if config('ui', 'directories', 'template'):
@@ -37,56 +37,28 @@ app = Flask(__name__, **flask_config)
 __error = {}
 
 
-def ensure_list(var):
-    if type(var) is list:
-        return var
-    return [var]
+def error(error_id: str, code: int) -> tuple[str, int]:
+    '''Generate error page based on data defined in `error.yml` and the given
+    error identifier.
 
-
-def verify_password(username: str, password: str) -> dict:
-    user_dn = config('ldap', 'user_dn').format(username=username)
-
-    server = Server(
-            config('ldap', 'server'),
-            port=config('ldap', 'port'),
-            use_ssl=True,
-            get_info=ALL)
-    conn = Connection(server, user_dn, password, auto_bind=True)
-
-    attributes = list(filter(bool, [
-        config('ldap', 'userdata', 'email', 'field'),
-        config('ldap', 'userdata', 'name', 'family'),
-        config('ldap', 'userdata', 'name', 'given')]))
-    attributes += config('ldap', 'userdata', 'groups', 'fields') or []
-
-    conn.search(
-            config('ldap', 'base_dn'),
-            config('ldap', 'search_filter').format(username=username),
-            attributes=attributes)
-    if len(conn.entries) != 1:
-        raise ValueError('Search must return exactly one result', conn.entries)
-    return conn.entries[0].entry_attributes_as_dict
-
-
-def login_data(data):
-    email = data.get('email')
-    login = data.get('login')
-    if login:
-        return email, login, True
-    login = email.split('@', 1)[0]
-    return email, login, False
-
-
-def error(id, code):
+    :param error_id: String identifying the error to render.
+    :param code: HTTP status code to return.
+    :returns: Tuple of data for Flask response
+    '''
     if not __error:
         with open(os.path.dirname(__file__) + '/error.yml', 'r') as f:
             globals()['__error'] = yaml.safe_load(f)
-    error_data = __error.get(id).copy()
+    error_data = __error[error_id].copy()
     error_data['leihs_url'] = config('leihs', 'url')
     return render_template('error.html', **error_data), code
 
 
 def handle_errors(function):
+    '''Decorator handling common errors.
+    This will cause an errpr page to be rendered.
+
+    :param function: Function to wrap.
+    '''
     @wraps(function)
     def wrapper(*args, **kwargs):
         try:
@@ -109,17 +81,23 @@ def before_first_request():
 
 @app.errorhandler(500)
 def internal_server_error(e):
+    '''Handle internal server errors.
+    This causes the app to render an error page similar to known and caught
+    errors.
+    '''
     return error('internal', 500)
 
 
 @app.route('/', methods=['GET'])
 @handle_errors
 def login_page():
+    '''Render login page.
+    This is the page users will end up on when redirected from Leihs.
+    '''
     token = request.args.get('token')
     if not token:
         return error('no_token', 400)
-    data = token_data(token)
-    email, user, _ = login_data(data)
+    data, email, user, _ = token_data(token)
     return render_template('login.html', token=token, user=user)
 
 
@@ -137,11 +115,10 @@ def login():
     password = request.form.get('password')
 
     # verify token and get login data
-    data = token_data(token)
-    email, user, registered = login_data(data)
+    data, email, user, registered = token_data(token)
 
     # Login to and get user data from LDAP
-    user_data = verify_password(user, password)
+    user_data = ldap_login(user, password)
 
     # Get list of groups the user should be in
     group_fields = config('ldap', 'userdata', 'groups', 'fields') or []
