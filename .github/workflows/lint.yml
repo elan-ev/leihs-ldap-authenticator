@@ -30,4 +30,4 @@ jobs:
       run: pyright --skipunannotated leihsldap
 
     - name: run yamllint
-      run: yamllint leihs-ldap.yml
+      run: yamllint leihs-ldap.yml leihsldap/i18n/*.yml

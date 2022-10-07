@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import glob
 import logging
 import os
 import yaml
@@ -39,6 +40,8 @@ if config('ui', 'directories', 'static'):
 app = Flask(__name__, **flask_config)
 
 __error = {}
+__i18n = {}
+__languages = []
 
 
 def error(error_id: str, code: int) -> tuple[str, int]:
@@ -49,11 +52,10 @@ def error(error_id: str, code: int) -> tuple[str, int]:
     :param code: HTTP status code to return.
     :returns: Tuple of data for Flask response
     '''
-    if not __error:
-        with open(os.path.dirname(__file__) + '/error.yml', 'r') as f:
-            globals()['__error'] = yaml.safe_load(f)
-    error_data = __error[error_id].copy()
+    lang = request.accept_languages.best_match(__languages)
+    error_data = __error[lang][error_id].copy()
     error_data['leihs_url'] = config('leihs', 'url')
+    error_data['i18n'] = __i18n[lang]
     return render_template('error.html', **error_data), code
 
 
@@ -86,6 +88,22 @@ def before_first_request():
     logger.info('Trying to register authentication system')
     register_auth_system()
 
+    # load internationalization data
+    files = glob.glob(os.path.dirname(__file__) + '/i18n/error-*.yml')
+    globals()['__languages'] = {os.path.basename(f)[6:-4] for f in files}
+    logger.info('Detected available languages: %s', __languages)
+
+    for lang in __languages:
+        # load error messages
+        i18n_file = os.path.dirname(__file__) + f'/i18n/error-{lang}.yml'
+        with open(i18n_file, 'r') as f:
+            globals()['__error'][lang] = yaml.safe_load(f)
+
+        # load internationalization file
+        i18n_file = os.path.dirname(__file__) + f'/i18n/i18n-{lang}.yml'
+        with open(i18n_file, 'r') as f:
+            globals()['__i18n'][lang] = yaml.safe_load(f)
+
 
 @app.errorhandler(500)
 def internal_server_error(e):
@@ -107,7 +125,8 @@ def login_page():
         logger.debug('No token provided')
         return error('no_token', 400)
     _, email, user, _ = token_data(token)
-    return render_template('login.html', token=token, user=user)
+    i18n = __i18n[request.accept_languages.best_match(__languages)()]
+    return render_template('login.html', token=token, user=user, i18n=i18n)
 
 
 @app.route('/', methods=['POST'])
