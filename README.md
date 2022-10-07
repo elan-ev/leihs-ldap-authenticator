@@ -8,6 +8,8 @@
 
 LDAP based authentication handler for [Leihs](https://github.com/leihs/leihs).
 
+![Leihs Login Process](leihs-ldap-login.gif)
+
 ## Features
 
 - Provides __LDAP authentication__ for [Leihs](https://github.com/leihs/leihs) 6.x.
