@@ -26,29 +26,35 @@ jobs:
         git submodule update --init --recursive
 
     - name: build hosts file
+      working-directory: leihs-instance
       run: |
         echo '[leihs_server]' > hosts
         echo 'localhost   ansible_connection=local' >> hosts
 
     - name: build host vars
+      working-directory: leihs-instance/host_vars
       run: |
-        echo 'leihs_external_hostname: localhost' > host_vars/localhost.yml
-        echo 'ansible_host: localhost' >> host_vars/localhost.yml
-        echo 'leihs_send_mails: false' >> host_vars/localhost.yml
-        echo 'db_backup_keep_days: 4' >> host_vars/localhost.yml
-        echo 'db_backup_nigthly_enabled: false' >> host_vars/localhost.yml
-        echo 'db_backup_on_deploy: false' >> host_vars/localhost.yml
+        echo 'leihs_external_hostname: localhost' > localhost.yml
+        echo 'ansible_host: localhost' >> localhost.yml
+        echo 'leihs_send_mails: false' >> localhost.yml
+        echo 'db_backup_keep_days: 4' >> localhost.yml
+        echo 'db_backup_nigthly_enabled: false' >> localhost.yml
+        echo 'db_backup_on_deploy: false' >> localhost.yml
 
     - name: update group vars
+      working-directory: leihs-instance/group_vars
       run: |
-        sed -i 's/force_redirect_to_https: .*$/force_redirect_to_https: false/' group_vars/leihs_server.yml
-        sed -i 's#ssl_certificate_file: .*$#ssl_certificate_file: /localhost.crt#' group_vars/leihs_server.yml
-        sed -i 's#ssl_certificate_key_file: .*$#ssl_certificate_key_file: /localhost.key#' group_vars/leihs_server.yml
+        sed -i 's/force_redirect_to_https: .*$/force_redirect_to_https: false/' leihs_server.yml
+        sed -i 's#ssl_certificate_file: .*$#ssl_certificate_file: /localhost.crt#' leihs_server.yml
+        sed -i 's#ssl_certificate_key_file: .*$#ssl_certificate_key_file: /localhost.key#' leihs_server.yml
 
     - name: generate certificates
-      run: sudo openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes -out /localhost.crt -keyout /localhost.key
+      run: >
+        sudo openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes
+         -out /localhost.crt -keyout /localhost.key
 
     - name: deploy
+      working-directory: leihs-instance
       run: sudo ./scripts/deploy
 
     - name: test
