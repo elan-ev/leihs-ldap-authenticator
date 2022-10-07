@@ -1,28 +1,63 @@
-# leihs-ldap-authenticator
+# Leihs LDAP Authenticator
 
 [![GPLv3+ license](https://img.shields.io/github/license/elan-ev/leihs-ldap-authenticator)
 ](https://github.com/elan-ev/leihs-ldap-authenticator/blob/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/leihs-ldap-authenticator?color=blue)
 ](https://pypi.org/project/leihs-ldap-authenticator/)
-![Status: Beta](https://img.shields.io/badge/status-neta-yellow)
+![Status: Beta](https://img.shields.io/badge/status-beta-yellow)
 
 LDAP based authentication handler for [Leihs](https://github.com/leihs/leihs).
+
+## Features
+
+- Provides __LDAP authentication__ for [Leihs](https://github.com/leihs/leihs) 6.x.
+
+  When users want to log in, Leihs will redirect them to this authentication handler where they can authenticate themselves using an LDAP backend
+
+- Automatically __create new users__ in Leihs when they first log in.
+
+  When logging in, users must be registered with Leihs.
+  The LDAP authenticator takes care of this automatically when the user first logs in.
+
+- Register or log-in __via email address or username__.
+
+  Users can log in via username or email address.
+  For technical details about how LDAP users are mapped, see [LDAP Username Mapping](#ldap-username-mapping) below.
+
+- Automatic __group assignment__ based on LDAP attributes.
+
+  When creating the users, they can be assigned to groups in Leihs based on their LDAP attributes. Groups will be automatically created if they do not yet exist.
+
+- Provides __automatic configuration__ of the Leihs authentication system.
+
+  The authenticator will automatically register itself in Leihs before answering the first request.
+  Just open the authenticator in your browser and it will magically appear in Leihs.
 
 ## Getting Started
 
 1. Install the tool via pip:
-	```
-	❯ pip install leihs-ldap-authenticator
-	```
+
+   ```
+   ❯ pip install leihs-ldap-authenticator
+   ```
+
 2. Download and edit the [example configuration](https://github.com/elan-ev/leihs-ldap-authenticator/blob/main/leihs-ldap.yml).
    The configuration keys are documented in the file:
-	```
-	❯ wget https://github.com/elan-ev/leihs-ldap-authenticator/blob/main/leihs-ldap.yml
-	```
+
+   ```
+   ❯ wget https://github.com/elan-ev/leihs-ldap-authenticator/blob/main/leihs-ldap.yml
+   ```
+
 3. Run the tool:
+
    ```
-	❯ python -m leihsldap -c /path/to/leihs-ldap.yml
+   ❯ python -m leihsldap -c /path/to/leihs-ldap.yml
    ```
+
+4. Open the tool once in your browser.
+   For example, go to [127.0.0.1:5000](http://127.0.0.1:5000) if you run the tool locally.
+   It's not important to provide a valid token.
+   You need to do this because the tool will register itself on the first request.
 
 ### Development Version
 
@@ -35,6 +70,38 @@ and run the project from the root repository path:
 ❯ python -m leihsldap
  * Serving Flask app 'leihsldap.web'
  * Debug mode: off
-WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
  * Running on http://127.0.0.1:5000
 ```
+
+## Technical Notes
+
+### LDAP Username Mapping
+
+If a user does not yet exist in Leihs, the system will always transfer the user input as an email address to the authenticator, regardless of it actually being a valid email address.
+
+To circumvent this, the authenticator will treat the input up to the first `@` character as username and use this for the LDAP login.
+
+Once registered, Leihs will also transfer the login field which is used from there on for authentication.
+
+### Update of Data in Leihs
+
+As a general rule, the authenticator will only ever create,
+but never update data in Leihs.
+If you want updated data in Leihs,
+either update this manually,
+or remove the resource to have it recreated with new data.
+
+This applies to:
+
+- Authentication system
+- Groups
+- Users
+
+This also means that you can update data if you need to.
+For example, you can add users to additional groups without the authentication system interfering (potentially removing them again).
+
+## Support
+
+This project is free software. It was initially developed by [ELAN e.V.](https://elan-ev.de) for [Osnabrück University](https://uos.de). We hope that this is helpful, and you can use this as well.
+
+If you need commercial support installing this tool or want to commission further development you aren't able to do yourself, please [contact the ELAN e.V.](https://elan-ev.de)
