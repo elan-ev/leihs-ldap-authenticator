@@ -1,19 +1,19 @@
-name: lint
+name: test
 
 on:
   - push
   - pull_request
 
 jobs:
-  lint:
+  test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
 
     - name: install dependencies
       run: |
-        apt update
-        apt install ruby python3-venv
+        sudo apt update
+        sudo apt install ruby python3-venv
 
     - name: clone leihs-instance
       run: git clone https://github.com/leihs/leihs-instance
@@ -46,10 +46,10 @@ jobs:
         sed -i 's#ssl_certificate_key_file: .*$#ssl_certificate_key_file: /localhost.key#' group_vars/leihs_server.yml
 
     - name: generate certificates
-      run: openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes -out /localhost.crt -keyout /localhost.key
+      run: sudo openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes -out /localhost.crt -keyout /localhost.key
 
     - name: deploy
-      run: ./scripts/deploy
+      run: sudo ./scripts/deploy
 
     - name: test
       run: curl -i http://localhost
