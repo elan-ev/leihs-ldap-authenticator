@@ -1,0 +1,55 @@
+name: lint
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: install dependencies
+      run: |
+        apt update
+        apt install ruby python3-venv
+
+    - name: clone leihs-instance
+      run: git clone https://github.com/leihs/leihs-instance
+
+    - name: initialize submodules
+      working-directory: leihs-instance
+      run: |
+        git submodule update --init leihs
+        cd leihs
+        git submodule update --init --recursive
+
+    - name: build hosts file
+      run: |
+        echo '[leihs_server]' > hosts
+        echo 'localhost   ansible_connection=local' >> hosts
+
+    - name: build host vars
+      run: |
+        echo 'leihs_external_hostname: localhost' > host_vars/localhost.yml
+        echo 'ansible_host: localhost' >> host_vars/localhost.yml
+        echo 'leihs_send_mails: false' >> host_vars/localhost.yml
+        echo 'db_backup_keep_days: 4' >> host_vars/localhost.yml
+        echo 'db_backup_nigthly_enabled: false' >> host_vars/localhost.yml
+        echo 'db_backup_on_deploy: false' >> host_vars/localhost.yml
+
+    - name: update group vars
+      run: |
+        sed -i 's/force_redirect_to_https: .*$/force_redirect_to_https: false/' group_vars/leihs_server.yml
+        sed -i 's#ssl_certificate_file: .*$#ssl_certificate_file: /localhost.crt#' group_vars/leihs_server.yml
+        sed -i 's#ssl_certificate_key_file: .*$#ssl_certificate_key_file: /localhost.key#' group_vars/leihs_server.yml
+
+    - name: generate certificates
+      run: openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes -out /localhost.crt -keyout /localhost.key
+
+    - name: deploy
+      run: ./scripts/deploy
+
+    - name: test
+      run: curl -i http://localhost
