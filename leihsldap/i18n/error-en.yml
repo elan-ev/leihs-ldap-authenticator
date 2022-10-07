@@ -1,6 +1,6 @@
 ---
 
-# LDAP based authentication handler for Leihs 
+# LDAP based authentication handler for Leihs
 # Copyright 2022 ELAN e.V.
 #
 # This program is free software: you can redistribute it and/or modify
@@ -30,7 +30,8 @@ no_token:
 expired_token:
   title: Expired Token
   message: |
-    You log-in attempt took too long and the token provided by Leihs has expired.
+    You log-in attempt took too long
+    and the token provided by Leihs has expired.
     Please return to Leihs and try again.
 invalid_credentials:
   title: Invalid Credentials

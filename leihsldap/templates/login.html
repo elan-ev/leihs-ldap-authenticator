@@ -23,12 +23,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 		<link type=text/css rel=stylesheet href={{ url_for('static', filename='style.css') }} />
 	</head>
 	<body>
-		<h1>Login</h1>
+		<h1>{{ i18n.login }}</h1>
 		<form action="/" method="POST">
 			 <input type="hidden" name="token" value="{{ token }}"/>
 			 <input type="text" name="user" value="{{ user }}" readonly disabled />
-			 <input type="password" name="password" placeholder="password" autofocus />
-			 <input type="submit" value="Login" />
+			 <input type="password" name="password" placeholder="{{ i18n.password }}" autofocus />
+			 <input type="submit" value="{{ i18n.login }}" />
 		</form>
 	</body>
 </html>
