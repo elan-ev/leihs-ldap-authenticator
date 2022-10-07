@@ -50,7 +50,8 @@ jobs:
 
     - name: generate certificates
       run: >
-        sudo openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes
+        echo "de\n\n\n\n\nlocalhost\nadmin@localhost" |
+         sudo openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes
          -out /localhost.crt -keyout /localhost.key <<< de
 
     - name: deploy
