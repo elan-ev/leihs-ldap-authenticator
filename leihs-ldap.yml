@@ -1,3 +1,4 @@
+---
 # LDAP based authentication handler for Leihs
 
 # Configuration related to your Leihs installation.
@@ -34,13 +35,14 @@ token:
     -----END PUBLIC KEY-----
 
   # How long should the issued success token be valid.
-  # Shorter means more secure but also more likely to cause errors in case of slow networks.
+  # Shorter means more secure but also more likely to cause errors
+  # in case of slow networks.
   # Value in seconds.
   validity: 120
 
   # Do not fail if the token received from Leihs has expired.
   # Accepting expired token is insecure!
-  allow_expired: False
+  allow_expired: false
 
 
 # Configuration related to the authentication system registration in Leihs.
@@ -67,17 +69,21 @@ auth-system:
 
   # Regular expression matching users when they try to log in.
   # If a user logs in, but has no Leihs user yet,
-  # LDAP authentication is offered to the user if this regular expression matches.
+  # LDAP authentication is offered if this regular expression matches.
+  #
   # It often makes sense to either set this to matching email addresses
   # from specific domain names like .*@example.com
   # or to set this to .* to match all inputs.
+  #
+  # If this is not set, only users which have been created in Leihs before
+  # and have been assigned to this authentican system can log in via LDAP.
   email_match: .*
 
 
 # Configuration related to the LDAP server.
 # - Note that only secure connections via TLS are allowed.
-# - The authenticator will try logging in with a users provided username and password
-#   and then sor for his/her own data.
+# - The authenticator will try logging in with a users provided username and
+#   password and then sor for his/her own data.
 # - You can use ldapsearch to check what data is available:
 #   ❯ ldapsearch -v -H ldaps://ldap.example.com:636 \
 #       -b ou=people,dc=example,dc=com \
@@ -106,20 +112,20 @@ ldap:
     email:
       # Use LDAP email data to overwrite the email field provided by Leihs.
       # This can be useful, for example, if you have several domains.
-      overwrite: True
+      overwrite: true
 
       # Falls back to LDAP email if no valid email is provided from Leihs.
-      fallback: True
+      fallback: true
 
       # LDAP attribute to use as email address.
       field: mail
 
     name:
-       # LDAP field specifying the user's family name
-       family: sn
+      # LDAP field specifying the user's family name
+      family: sn
 
-       # LDAP field specifying the user's given name
-       given: givenName
+      # LDAP field specifying the user's given name
+      given: givenName
 
     groups:
       # LDAP fields specifying groups to which new users will be assigned.
@@ -131,14 +137,19 @@ ldap:
 # User interface configuration.
 ui:
   directories:
-    # Path to a folder containing user interface templates if the built-in templates should not be used.
+    # Path to a folder containing user interface templates,
+    # overriding *all* built-in templates.
     # If you use this, make sure to provide all necessary templates.
     # Missing templates can cause unrecoverable errors during the login process.
-    #template: /path/to/template/dir
+    # Example:
+    #   template: /path/to/template/dir
+    template: null
 
     # Path to a folder containing static files used in the user interface.
     # This overwrites all built-in files.
-    #static: /path/to/static/dir
+    # Example:
+    #   static: /path/to/static/dir
+    static: null
 
 # Level of details used for logging
 # Valid options are:
