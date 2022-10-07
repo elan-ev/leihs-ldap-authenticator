@@ -50,8 +50,7 @@ jobs:
 
     - name: generate certificates
       run: >
-        sudo openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes
-         -out /localhost.crt -keyout /localhost.key -subj /CN=localhost/
+        sudo openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes -out /localhost.crt -keyout /localhost.key -subj /CN=localhost/
 
     - name: deploy
       working-directory: leihs-instance
