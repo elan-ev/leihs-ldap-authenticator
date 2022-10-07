@@ -44,9 +44,10 @@ jobs:
     - name: update group vars
       working-directory: leihs-instance/group_vars
       run: |
-        sed -i 's/force_redirect_to_https: .*$/force_redirect_to_https: false/' leihs_server.yml
+        sed -i 's/force_redirect_to_https: yes$/force_redirect_to_https: false/' leihs_server.yml
         sed -i 's#ssl_certificate_file: .*$#ssl_certificate_file: /localhost.crt#' leihs_server.yml
         sed -i 's#ssl_certificate_key_file: .*$#ssl_certificate_key_file: /localhost.key#' leihs_server.yml
+        cat leihs_server.yml
 
     - name: generate certificates
       run: >
