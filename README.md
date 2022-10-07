@@ -75,6 +75,22 @@ and run the project from the root repository path:
  * Running on http://127.0.0.1:5000
 ```
 
+## Production Deployment
+
+While you can just start and test the authenticator with the built-in web server,
+using this is _not_ safe for production.
+For a production deployment, use a WSGI server like [Gunicorn](https://gunicorn.org/).
+A basic example of running this application with Gunicorn is:
+
+```
+❯ gunicorn --config=/path/to/gunicorn.conf.py leihsldap.web:app
+```
+
+For a systemd unit to turn leisldap into a service and for an example Gunicorn configuration file, take a look at the `init` folder:
+
+- Example [systemd unit](init/leihsldap.service)
+- Example [Gunicorn configuration](init/gunicorn.conf.py)
+
 ## Technical Notes
 
 ### LDAP Username Mapping
