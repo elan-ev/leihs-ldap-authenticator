@@ -1,0 +1,10 @@
+[Unit]
+Description=Leihs LDAP Authenticator
+Documentation=https://github.com/elan-ev/leihs-ldap-authenticator
+Wants=network.target
+
+[Service]
+Type=simple
+User=leihsldap
+ExecStart=/usr/bin/python3 -m gunicorn.app.wsgiapp --config=/etc/leihsldap/gunicorn.conf.py leihsldap.web:app
+Restart=always
