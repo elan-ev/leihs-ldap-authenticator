@@ -123,3 +123,13 @@ For example, you can add users to additional groups without the authentication s
 This project is free software. It was initially developed by [ELAN e.V.](https://elan-ev.de) for [Osnabrück University](https://uos.de). We hope that this is helpful, and you can use this as well.
 
 If you need commercial support installing this tool or want to commission further development you aren't able to do yourself, please [contact the ELAN e.V.](https://elan-ev.de)
+
+## Development
+
+To cut a new release:
+
+1. Update the version in [setup.py](setup.py), commit changes, create pull request and merge
+1. Update the `main` branch locally and create a release tag: `git tag -s v0.4`
+1. Push the tag upstream: `git push upstream v0.4:v0.4`
+1. Create a [new release on GitHub](https://github.com/elan-ev/leihs-ldap-authenticator/releases/new).
+1. Build Python package and upload it to [pypi.org](https://pypi.org): `python setup.py sdist; twine upload dist/leihs-ldap-authenticator-0.2.tar.gz`
