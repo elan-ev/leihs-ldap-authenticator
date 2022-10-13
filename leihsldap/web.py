@@ -53,6 +53,7 @@ def error(error_id: str, code: int) -> tuple[str, int]:
     :returns: Tuple of data for Flask response
     '''
     lang = request.accept_languages.best_match(__languages)
+    logger.debug('Using language: %s', lang)
     error_data = __error[lang][error_id].copy()
     error_data['leihs_url'] = config('leihs', 'url')
     error_data['i18n'] = __i18n[lang]
