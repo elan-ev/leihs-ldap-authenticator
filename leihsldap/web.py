@@ -126,7 +126,7 @@ def login_page():
         logger.debug('No token provided')
         return error('no_token', 400)
     _, email, user, _ = token_data(token)
-    i18n = __i18n[request.accept_languages.best_match(__languages)()]
+    i18n = __i18n[request.accept_languages.best_match(__languages)]
     return render_template('login.html', token=token, user=user, i18n=i18n)
 
 
