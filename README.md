@@ -87,6 +87,10 @@ For a systemd unit to turn leisldap into a service and for an example Gunicorn c
 - Example [systemd unit](init/leihsldap.service)
 - Example [Gunicorn configuration](init/gunicorn.conf.py)
 
+## Ansible
+
+To run the authenticator in production you can use our [ansible role](https://github.com/elan-ev/leihs_ldap_authenticator).
+
 ## Technical Notes
 
 ### LDAP Username Mapping
