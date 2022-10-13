@@ -13,7 +13,7 @@ setup(
     name='leihs-ldap-authenticator',
     author='Lars Kiesow <kiesow@elan-ev.de>',
     license='GPLv3+',
-    version='0.4',
+    version='0.5',
     url='https://github.com/elan-ev/leihs-ldap-authenticator',
     packages=find_packages(),
     install_requires=read('requirements.txt').split(),
