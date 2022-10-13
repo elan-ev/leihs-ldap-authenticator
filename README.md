@@ -32,8 +32,7 @@ LDAP based authentication handler for [Leihs](https://github.com/leihs/leihs).
 
 - Provides __automatic configuration__ of the Leihs authentication system.
 
-  The authenticator will automatically register itself in Leihs before answering the first request.
-  Just open the authenticator in your browser and it will magically appear in Leihs.
+  The authenticator will automatically register itself in Leihs.
 
 ## Getting Started
 
@@ -56,10 +55,7 @@ LDAP based authentication handler for [Leihs](https://github.com/leihs/leihs).
    ❯ python -m leihsldap -c /path/to/leihs-ldap.yml
    ```
 
-4. Open the tool once in your browser.
-   For example, go to [127.0.0.1:5000](http://127.0.0.1:5000) if you run the tool locally.
-   It's not important to provide a valid token.
-   You need to do this because the tool will register itself on the first request.
+	The tool should automatically register itself in Leihs.
 
 ### Development Version
 

@@ -82,13 +82,9 @@ def handle_errors(function):
     return wrapper
 
 
-@app.before_first_request
-def before_first_request():
-    '''Try registering the authentication system.
+def init():
+    '''Load internationalization and try to register the authentication system.
     '''
-    logger.info('Trying to register authentication system')
-    register_auth_system()
-
     # load internationalization data
     files = glob.glob(os.path.dirname(__file__) + '/i18n/error-*.yml')
     globals()['__languages'] = {os.path.basename(f)[6:-4] for f in files}
@@ -104,6 +100,10 @@ def before_first_request():
         i18n_file = os.path.dirname(__file__) + f'/i18n/i18n-{lang}.yml'
         with open(i18n_file, 'r') as f:
             globals()['__i18n'][lang] = yaml.safe_load(f)
+
+    # Try to register auth system
+    logger.info('Trying to register authentication system')
+    register_auth_system()
 
 
 @app.errorhandler(500)
@@ -172,3 +172,6 @@ def login():
 
     # Redirect back to Leihs with success token
     return redirect(response_url(token, data), code=302)
+
+
+init()
