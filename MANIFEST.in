@@ -1,1 +1,1 @@
-include LICENSE README.md requirements.txt leihsldap/error.yml leihsldap/templates/*.html leihsldap/static/*.css
+include LICENSE README.md requirements.txt leihsldap/i18n/*yml leihsldap/templates/*.html leihsldap/static/*.css
