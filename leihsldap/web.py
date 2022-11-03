@@ -165,8 +165,8 @@ def login():
     # Make sure user is registered with Leihs
     register_user(
             email,
-            firstname=(user_data['givenName'] or [None])[0],
-            lastname=(user_data['sn'] or [None])[0],
+            firstname=(user_data[config('ldap', 'userdata', 'name', 'given')] or [None])[0],
+            lastname=(user_data[config('ldap', 'userdata', 'name', 'family')] or [None])[0],
             username=user,
             groups=groups)
 
