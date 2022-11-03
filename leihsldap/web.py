@@ -163,10 +163,12 @@ def login():
         data['email'] = email
 
     # Make sure user is registered with Leihs
+    given = config('ldap', 'userdata', 'name', 'given')
+    family = config('ldap', 'userdata', 'name', 'family')
     register_user(
             email,
-            firstname=(user_data['givenName'] or [None])[0],
-            lastname=(user_data['sn'] or [None])[0],
+            firstname=(user_data[given] or [None])[0],
+            lastname=(user_data[family] or [None])[0],
             username=user,
             groups=groups)
 
