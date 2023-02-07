@@ -33,7 +33,7 @@ def api(method: str, path: str, **kwargs) -> requests.models.Response:
     :param path: Path of the request URL
     :returns: HTTP response
     '''
-    base_url = config('leihs', 'url', allow_empty=False)
+    base_url = config('leihs', 'url', allow_empty=False).rstrip('/')
     url = f'{base_url}{path}'
     headers = {'Accept': 'application/json',
                'Content-Type': 'application/json',
@@ -127,7 +127,7 @@ def register_auth_system() -> None:
         'description': config('auth-system', 'description'),
         'enabled': True,
         'external_public_key': config('token', 'public_key'),
-        'external_sign_in_url': config('auth-system', 'url'),
+        'external_sign_in_url': config('auth-system', 'url').rstrip('/'),
         'id': config('auth-system', 'id', allow_empty=False),
         'internal_private_key': config('token', 'private_key'),
         'internal_public_key': config('token', 'public_key'),
