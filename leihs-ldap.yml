@@ -133,6 +133,13 @@ ldap:
       fields:
         - ou
 
+    # Combine all groups into a single group name
+    # If set to true, all groups from the specified LDAP fields will be
+    # combined into a single, comma-separated group name.
+    # If false, each group will be created separately in Leihs.
+    # Default: false
+    combine_groups: false
+
 
 # User interface configuration.
 ui:
