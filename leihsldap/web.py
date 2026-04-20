@@ -153,6 +153,11 @@ def login():
     group_fields = config('ldap', 'userdata', 'groups', 'fields') or []
     groups = [group for field in group_fields for group in user_data[field]]
 
+    # Check if groups should be combined
+    combine_groups = config('ldap', 'userdata', 'combine_groups')
+    if combine_groups:
+        groups = [','.join(groups)] if groups else []
+
     # Check if to fall back to the LDAP email address
     email_overwrite = config('ldap', 'userdata', 'email', 'overwrite')
     email_fallback = config('ldap', 'userdata', 'email', 'fallback')
